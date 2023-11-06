@@ -1,18 +1,11 @@
 const router = require("express").Router();
 const fileMiddleware = require("../middleware/file");
+const { incCounter, getCounter } = require("../api/counter");
+
 
 const Book = require("../models/Book");
 
 const { books } = require("./store");
-const redis = require('redis');
-
-const REDIS_URL = process.env.REDIS_URL || 'localhost';
-
-const client = redis.createClient ({url: REDIS_URL});
-
-(async()=>{
-    await client.connect();
-})()
 
 const props = [
 	"title",
@@ -32,7 +25,9 @@ router.get("/view/:id", async (req, res) => {
 	const book = books.find((b) => b.id === id);
 
 	if (book) {
-		const counter = await client.incr(id)
+		await incCounter(id);
+		const counter = await getCounter(id);
+
 
 		res.render("books/view", { title: "Просмотр книги", book, counter });
 	} else {
